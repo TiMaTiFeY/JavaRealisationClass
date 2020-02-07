@@ -320,9 +320,9 @@ public final class Cube {
                 currentLookingFaces = new int[]{
                         currentLookingFaces[FacesName.LEFT.ordinal()],//LEFT -> FRONT
                         currentLookingFaces[FacesName.TOP.ordinal()],//TOP
-                        currentLookingFaces[FacesName.BACK.ordinal()],//BACK -> RIGHT
+                        currentLookingFaces[FacesName.FRONT.ordinal()],//FRONT -> RIGHT
                         currentLookingFaces[FacesName.BOT.ordinal()],//BOT
-                        currentLookingFaces[FacesName.FRONT.ordinal()],//FRONT -> LEFT
+                        currentLookingFaces[FacesName.BACK.ordinal()],//BACK -> LEFT
                         currentLookingFaces[FacesName.RIGHT.ordinal()],//RIGHT -> BACK
                 };
                 rotateFace(FacesName.TOP, false);
@@ -342,12 +342,14 @@ public final class Cube {
     }
 
     public void mixingRandomCube(int countMoves) {
+        System.out.println("Mixing: {");
         for (int i = 0; i < countMoves; i++) {
             FacesName randomFace = FacesName.values()[randomIntInRange0To(5)];
             int randomDelta = randomIntInRange0To(size % 2 == 0 ? size / 2 - 1 : size / 2);
             this.moveFace(randomFace, randomDelta, true, false);
-            //System.out.println(randomFace + " " + randomDelta);
+            System.out.println("Face: " + randomFace + "  Delta: " + randomDelta);
         }
+        System.out.println("}");
     }
 
     @Override
