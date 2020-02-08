@@ -23,7 +23,7 @@ public final class Cube {
 
     private final static int countSymbolsForPrint = 6;
 
-    public enum CubeRotates {UP, RIGHT, DOWN, LEFT}
+    public enum CubeRotates {UP, RIGHT, DOWN, LEFT, FRONT_RIGHT, FRONT_LEFT}
 
     public enum FacesName {FRONT, TOP, RIGHT, BOT, LEFT, BACK}
 
@@ -331,6 +331,38 @@ public final class Cube {
                 rotateFace(FacesName.BACK, true);
                 rotateFace(FacesName.LEFT, true);
                 rotateFace(FacesName.LEFT, true);
+                break;
+            case FRONT_RIGHT:
+                currentLookingFaces = new int[]{
+                        currentLookingFaces[FacesName.FRONT.ordinal()],//FRONT
+                        currentLookingFaces[FacesName.LEFT.ordinal()],//LEFT -> TOP
+                        currentLookingFaces[FacesName.TOP.ordinal()],//TOP -> RIGHT
+                        currentLookingFaces[FacesName.RIGHT.ordinal()],//RIGHT -> UNDER
+                        currentLookingFaces[FacesName.BOT.ordinal()],//BOT -> LEFT
+                        currentLookingFaces[FacesName.BACK.ordinal()],//BACK
+                };
+                rotateFace(FacesName.FRONT, true);
+                rotateFace(FacesName.RIGHT, true);
+                rotateFace(FacesName.LEFT, true);
+                rotateFace(FacesName.TOP, true);
+                rotateFace(FacesName.BOT, true);
+                rotateFace(FacesName.BACK, false);
+                break;
+            case FRONT_LEFT:
+                currentLookingFaces = new int[]{
+                        currentLookingFaces[FacesName.FRONT.ordinal()],//FRONT
+                        currentLookingFaces[FacesName.RIGHT.ordinal()],//RIGHT -> TOP
+                        currentLookingFaces[FacesName.BOT.ordinal()],//BOT -> RIGHT
+                        currentLookingFaces[FacesName.LEFT.ordinal()],//LEFT -> UNDER
+                        currentLookingFaces[FacesName.TOP.ordinal()],//TOP -> LEFT
+                        currentLookingFaces[FacesName.BACK.ordinal()],//BACK
+                };
+                rotateFace(FacesName.FRONT, false);
+                rotateFace(FacesName.RIGHT, false);
+                rotateFace(FacesName.LEFT, false);
+                rotateFace(FacesName.TOP, false);
+                rotateFace(FacesName.BOT, false);
+                rotateFace(FacesName.BACK, true);
                 break;
             default:
                 break;
