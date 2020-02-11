@@ -1,6 +1,7 @@
 package cube;
 
 import java.lang.StringBuilder;
+import java.util.Arrays;
 import java.util.Random;
 
 public final class Cube {
@@ -15,11 +16,11 @@ public final class Cube {
     private static final String ANSI_WHITE = "\u001B[37m";
 
     private final static String[] colorsArray = {
-            ANSI_WHITE + "W", //FRONT
-            ANSI_GREEN + "G", //TOP
-            ANSI_PURPLE + "P", //RIGHT
-            ANSI_BLUE + "B", //BOT
-            ANSI_RED + "R", //LEFT
+            ANSI_WHITE + "W",   //FRONT
+            ANSI_GREEN + "G",   //TOP
+            ANSI_PURPLE + "P",  //RIGHT
+            ANSI_BLUE + "B",    //BOT
+            ANSI_RED + "R",     //LEFT
             ANSI_YELLOW + "Y"}; //BACK
 
     public enum Rotates {UP, RIGHT, DOWN, LEFT, FRONT_RIGHT, FRONT_LEFT}
@@ -27,12 +28,29 @@ public final class Cube {
     public enum Faces {FRONT, TOP, RIGHT, BOT, LEFT, BACK}
 
     private Face[] faces = new Face[6]; //Массив граней
-    private int[] currentLookingFaces = new int[]{0, 1, 2, 3, 4, 5};
-    //0 - front, 1 - top, 2 - right, 3 - under, 4 - left, 5 - back
+    private int[] currentLookingFaces = new int[]{
+            Faces.FRONT.ordinal(),
+            Faces.TOP.ordinal(),
+            Faces.RIGHT.ordinal(),
+            Faces.BOT.ordinal(),
+            Faces.LEFT.ordinal(),
+            Faces.BACK.ordinal()
+    };
 
     public Cube(int size) { //Конструктор
         if (size < 0) throw new NumberFormatException("CUBE SIZE MUST BE POSITIVE INTEGER");
         this.size = size;
+        for (int color = 0; color < 6; color++) {
+            int[][] faceArray = new int[size][size];
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    faceArray[i][j] = color;
+            this.faces[color] = new Face(faceArray);
+        }
+    }
+
+    public Cube() {
+        this.size = 3;
         for (int color = 0; color < 6; color++) {
             int[][] faceArray = new int[size][size];
             for (int i = 0; i < size; i++)
@@ -71,6 +89,28 @@ public final class Cube {
             sb.append(ANSI_RESET);
             return sb.append("}").toString();
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj instanceof Face) {
+                Face other = (Face) obj;
+                boolean res = true;
+                for (int i = 0; i < this.colors.length; i++)
+                    res &= Arrays.equals(this.colors[i], other.colors[i]);
+                return res;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return colors.hashCode();
+        }
+    }
+
+    protected void setFace(Faces name, int[][] newColors) {
+        faces[currentLookingFaces[name.ordinal()]].colors = newColors;
     }
 
     public Face getFace(Faces name) {
@@ -123,21 +163,22 @@ public final class Cube {
                     break;
                 case LEFT:
                     if (delta == 0) rotateFace(Faces.LEFT, clockwise);
-                    if (!clockwise) {
-                        for (int i = 0; i < size; i++) {
-                            bufferColor = getColors(Faces.FRONT)[i][delta];
-                            getColors(Faces.FRONT)[i][delta] = getColors(Faces.BOT)[i][delta];
-                            getColors(Faces.BOT)[i][delta] = getColors(Faces.BACK)[i][delta];
-                            getColors(Faces.BACK)[i][delta] = getColors(Faces.TOP)[i][delta];
-                            getColors(Faces.TOP)[i][delta] = bufferColor;
-                        }
-                    } else {
+                    if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.FRONT)[i][delta];
                             getColors(Faces.FRONT)[i][delta] = getColors(Faces.TOP)[i][delta];
                             getColors(Faces.TOP)[i][delta] = getColors(Faces.BACK)[i][delta];
                             getColors(Faces.BACK)[i][delta] = getColors(Faces.BOT)[i][delta];
                             getColors(Faces.BOT)[i][delta] = bufferColor;
+
+                        }
+                    } else {
+                        for (int i = 0; i < size; i++) {
+                            bufferColor = getColors(Faces.FRONT)[i][delta];
+                            getColors(Faces.FRONT)[i][delta] = getColors(Faces.BOT)[i][delta];
+                            getColors(Faces.BOT)[i][delta] = getColors(Faces.BACK)[i][delta];
+                            getColors(Faces.BACK)[i][delta] = getColors(Faces.TOP)[i][delta];
+                            getColors(Faces.TOP)[i][delta] = bufferColor;
                         }
                     }
                     break;
@@ -216,8 +257,8 @@ public final class Cube {
                             bufferColor = getColors(Faces.TOP)[delta][i];
                             getColors(Faces.TOP)[delta][i] = getColors(Faces.LEFT)[size - 1 - i][delta];
                             getColors(Faces.LEFT)[size - 1 - i][delta] = getColors(Faces.BOT)[last][size - 1 - i];
-                            getColors(Faces.BOT)[last][size - 1 - i] = getColors(Faces.RIGHT)[size - 1 - i][last];
-                            getColors(Faces.RIGHT)[size - 1 - i][last] = bufferColor;
+                            getColors(Faces.BOT)[last][size - 1 - i] = getColors(Faces.RIGHT)[i][last];
+                            getColors(Faces.RIGHT)[i][last] = bufferColor;
                         }
                     }
                     break;
@@ -228,57 +269,45 @@ public final class Cube {
     }
 
     public void cubeRotateTo(Rotates move) {
+        int bufferIndex;
         switch (move) {
             case UP:
-                currentLookingFaces = new int[]{
-                        currentLookingFaces[Faces.TOP.ordinal()],//TOP -> FRONT
-                        currentLookingFaces[Faces.BACK.ordinal()],//BACK -> TOP
-                        currentLookingFaces[Faces.RIGHT.ordinal()],//RIGHT
-                        currentLookingFaces[Faces.FRONT.ordinal()],//FRONT -> UNDER
-                        currentLookingFaces[Faces.LEFT.ordinal()],//LEFT
-                        currentLookingFaces[Faces.BOT.ordinal()],//BOT -> BACK
-                };
+                bufferIndex = currentLookingFaces[Faces.FRONT.ordinal()];
+                currentLookingFaces[Faces.FRONT.ordinal()] = currentLookingFaces[Faces.TOP.ordinal()];
+                currentLookingFaces[Faces.TOP.ordinal()] = currentLookingFaces[Faces.BACK.ordinal()];
+                currentLookingFaces[Faces.BACK.ordinal()] = currentLookingFaces[Faces.BOT.ordinal()];
+                currentLookingFaces[Faces.BOT.ordinal()] = bufferIndex;
                 rotateFace(Faces.RIGHT, false);
                 rotateFace(Faces.LEFT, true);
                 break;
             case RIGHT:
-                currentLookingFaces = new int[]{
-                        currentLookingFaces[Faces.RIGHT.ordinal()],//RIGHT -> FRONT
-                        currentLookingFaces[Faces.TOP.ordinal()],//TOP
-                        currentLookingFaces[Faces.BACK.ordinal()],//BACK -> RIGHT
-                        currentLookingFaces[Faces.BOT.ordinal()],//BOT
-                        currentLookingFaces[Faces.FRONT.ordinal()],//FRONT -> LEFT
-                        currentLookingFaces[Faces.LEFT.ordinal()],//LEFT -> BACK
-                };
+                bufferIndex = currentLookingFaces[Faces.FRONT.ordinal()];
+                currentLookingFaces[Faces.FRONT.ordinal()] = currentLookingFaces[Faces.RIGHT.ordinal()];
+                currentLookingFaces[Faces.RIGHT.ordinal()] = currentLookingFaces[Faces.BACK.ordinal()];
+                currentLookingFaces[Faces.BACK.ordinal()] = currentLookingFaces[Faces.LEFT.ordinal()];
+                currentLookingFaces[Faces.LEFT.ordinal()] = bufferIndex;
                 rotateFace(Faces.TOP, true);
                 rotateFace(Faces.BOT, false);
                 rotateFace(Faces.BACK, true);
                 rotateFace(Faces.BACK, true);
                 rotateFace(Faces.RIGHT, true);
                 rotateFace(Faces.RIGHT, true);
-
                 break;
             case DOWN:
-                currentLookingFaces = new int[]{
-                        currentLookingFaces[Faces.BOT.ordinal()],//BOT -> FRONT
-                        currentLookingFaces[Faces.FRONT.ordinal()],//FRONT -> TOP
-                        currentLookingFaces[Faces.RIGHT.ordinal()],//RIGHT
-                        currentLookingFaces[Faces.BACK.ordinal()],//BACK -> BOT
-                        currentLookingFaces[Faces.LEFT.ordinal()],//LEFT
-                        currentLookingFaces[Faces.TOP.ordinal()],//TOP -> BACK
-                };
+                bufferIndex = currentLookingFaces[Faces.FRONT.ordinal()];
+                currentLookingFaces[Faces.FRONT.ordinal()] = currentLookingFaces[Faces.BOT.ordinal()];
+                currentLookingFaces[Faces.BOT.ordinal()] = currentLookingFaces[Faces.BACK.ordinal()];
+                currentLookingFaces[Faces.BACK.ordinal()] = currentLookingFaces[Faces.TOP.ordinal()];
+                currentLookingFaces[Faces.TOP.ordinal()] = bufferIndex;
                 rotateFace(Faces.RIGHT, false);
                 rotateFace(Faces.LEFT, true);
                 break;
             case LEFT:
-                currentLookingFaces = new int[]{
-                        currentLookingFaces[Faces.LEFT.ordinal()],//LEFT -> FRONT
-                        currentLookingFaces[Faces.TOP.ordinal()],//TOP
-                        currentLookingFaces[Faces.FRONT.ordinal()],//FRONT -> RIGHT
-                        currentLookingFaces[Faces.BOT.ordinal()],//BOT
-                        currentLookingFaces[Faces.BACK.ordinal()],//BACK -> LEFT
-                        currentLookingFaces[Faces.RIGHT.ordinal()],//RIGHT -> BACK
-                };
+                bufferIndex = currentLookingFaces[Faces.FRONT.ordinal()];
+                currentLookingFaces[Faces.FRONT.ordinal()] = currentLookingFaces[Faces.LEFT.ordinal()];
+                currentLookingFaces[Faces.LEFT.ordinal()] = currentLookingFaces[Faces.BACK.ordinal()];
+                currentLookingFaces[Faces.BACK.ordinal()] = currentLookingFaces[Faces.RIGHT.ordinal()];
+                currentLookingFaces[Faces.RIGHT.ordinal()] = bufferIndex;
                 rotateFace(Faces.TOP, false);
                 rotateFace(Faces.BOT, true);
                 rotateFace(Faces.BACK, true);
@@ -287,14 +316,11 @@ public final class Cube {
                 rotateFace(Faces.LEFT, true);
                 break;
             case FRONT_RIGHT:
-                currentLookingFaces = new int[]{
-                        currentLookingFaces[Faces.FRONT.ordinal()],//FRONT
-                        currentLookingFaces[Faces.LEFT.ordinal()],//LEFT -> TOP
-                        currentLookingFaces[Faces.TOP.ordinal()],//TOP -> RIGHT
-                        currentLookingFaces[Faces.RIGHT.ordinal()],//RIGHT -> UNDER
-                        currentLookingFaces[Faces.BOT.ordinal()],//BOT -> LEFT
-                        currentLookingFaces[Faces.BACK.ordinal()],//BACK
-                };
+                bufferIndex = currentLookingFaces[Faces.TOP.ordinal()];
+                currentLookingFaces[Faces.TOP.ordinal()] = currentLookingFaces[Faces.LEFT.ordinal()];
+                currentLookingFaces[Faces.LEFT.ordinal()] = currentLookingFaces[Faces.BOT.ordinal()];
+                currentLookingFaces[Faces.BOT.ordinal()] = currentLookingFaces[Faces.RIGHT.ordinal()];
+                currentLookingFaces[Faces.RIGHT.ordinal()] = bufferIndex;
                 rotateFace(Faces.FRONT, true);
                 rotateFace(Faces.RIGHT, true);
                 rotateFace(Faces.LEFT, true);
@@ -303,14 +329,11 @@ public final class Cube {
                 rotateFace(Faces.BACK, false);
                 break;
             case FRONT_LEFT:
-                currentLookingFaces = new int[]{
-                        currentLookingFaces[Faces.FRONT.ordinal()],//FRONT
-                        currentLookingFaces[Faces.RIGHT.ordinal()],//RIGHT -> TOP
-                        currentLookingFaces[Faces.BOT.ordinal()],//BOT -> RIGHT
-                        currentLookingFaces[Faces.LEFT.ordinal()],//LEFT -> UNDER
-                        currentLookingFaces[Faces.TOP.ordinal()],//TOP -> LEFT
-                        currentLookingFaces[Faces.BACK.ordinal()],//BACK
-                };
+                bufferIndex = currentLookingFaces[Faces.TOP.ordinal()];
+                currentLookingFaces[Faces.TOP.ordinal()] = currentLookingFaces[Faces.RIGHT.ordinal()];
+                currentLookingFaces[Faces.RIGHT.ordinal()] = currentLookingFaces[Faces.BOT.ordinal()];
+                currentLookingFaces[Faces.BOT.ordinal()] = currentLookingFaces[Faces.LEFT.ordinal()];
+                currentLookingFaces[Faces.LEFT.ordinal()] = bufferIndex;
                 rotateFace(Faces.FRONT, false);
                 rotateFace(Faces.RIGHT, false);
                 rotateFace(Faces.LEFT, false);
@@ -423,5 +446,39 @@ public final class Cube {
         sb.append(oneSizeLine);
         sb.append(ANSI_RESET);
         return sb.append("}").toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj instanceof Cube) {
+            Cube other = (Cube) obj;
+            boolean resultFace;
+            boolean mainRes = false;
+            for (int j = 0; j < 2; j++) {
+                for (int k = 0; k < 4; k++) {
+                    for (int m = 0; m < 4; m++) {
+                        resultFace = true;
+                        for (int i = 0; i < 6; i++) {
+                            resultFace &= this.faces[this.currentLookingFaces[i]]
+                                            .equals(other.faces[other.currentLookingFaces[i]]);
+                        }
+                        mainRes |= resultFace;
+                        other.cubeRotateTo(Rotates.RIGHT);
+                    }
+                    other.cubeRotateTo(Rotates.FRONT_RIGHT);
+                }
+                other.cubeRotateTo(Rotates.UP);
+                other.cubeRotateTo(Rotates.FRONT_RIGHT);
+                other.cubeRotateTo(Rotates.FRONT_RIGHT);
+            }
+            return mainRes;
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return faces.hashCode();
     }
 }
