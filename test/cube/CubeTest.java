@@ -68,7 +68,7 @@ public class CubeTest {
         cube2.cubeRotateTo(Cube.Rotates.RIGHT);
         cube2.cubeRotateTo(Cube.Rotates.DOWN);
         cube2.cubeRotateTo(Cube.Rotates.LEFT);
-        assertEquals(cube1, cube1);
+        assertEquals(cube1, cube2);
         assertNotEquals(cube1, cube3);
     }
 }
