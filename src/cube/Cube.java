@@ -16,12 +16,12 @@ public final class Cube {
     private static final String ANSI_WHITE = "\u001B[37m";
 
     private final static String[] colorsArray = {
-            ANSI_WHITE + "W",   //FRONT
-            ANSI_GREEN + "G",   //TOP
+            ANSI_GREEN + "G",   //FRONT
+            ANSI_YELLOW + "Y",   //TOP
             ANSI_PURPLE + "P",  //RIGHT
-            ANSI_BLUE + "B",    //BOT
+            ANSI_WHITE + "W",    //BOT
             ANSI_RED + "R",     //LEFT
-            ANSI_YELLOW + "Y"}; //BACK
+            ANSI_BLUE + "B"}; //BACK
 
     public enum Rotates {UP, RIGHT, DOWN, LEFT, FRONT_RIGHT, FRONT_LEFT}
 
@@ -143,6 +143,7 @@ public final class Cube {
             switch (name) {
                 case RIGHT:
                     if (delta == 0) rotateFace(Faces.RIGHT, clockwise);
+                    if (delta == size - 1) rotateFace(Faces.LEFT, !clockwise);
                     if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.FRONT)[i][last];
@@ -163,6 +164,7 @@ public final class Cube {
                     break;
                 case LEFT:
                     if (delta == 0) rotateFace(Faces.LEFT, clockwise);
+                    if (delta == size - 1) rotateFace(Faces.RIGHT, !clockwise);
                     if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.FRONT)[i][delta];
@@ -184,6 +186,7 @@ public final class Cube {
                     break;
                 case TOP:
                     if (delta == 0) rotateFace(Faces.TOP, clockwise);
+                    if (delta == size - 1) rotateFace(Faces.BOT, !clockwise);
                     if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.FRONT)[delta][i];
@@ -204,6 +207,7 @@ public final class Cube {
                     break;
                 case BOT:
                     if (delta == 0) rotateFace(Faces.BOT, clockwise);
+                    if (delta == size - 1) rotateFace(Faces.TOP, !clockwise);
                     if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.FRONT)[last][i];
@@ -224,6 +228,7 @@ public final class Cube {
                     break;
                 case FRONT:
                     if (delta == 0) rotateFace(Faces.FRONT, clockwise);
+                    if (delta == size - 1) rotateFace(Faces.BACK, !clockwise);
                     if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.TOP)[last][i];
@@ -244,6 +249,7 @@ public final class Cube {
                     break;
                 case BACK:
                     if (delta == 0) rotateFace(Faces.BACK, clockwise);
+                    if (delta == size - 1) rotateFace(Faces.FRONT, !clockwise);
                     if (clockwise) {
                         for (int i = 0; i < size; i++) {
                             bufferColor = getColors(Faces.TOP)[delta][i];
